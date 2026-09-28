@@ -11,6 +11,7 @@
 					:items="items"
 					:listName="listName"
 					:listCount="listCount"
+					:showMarkRead="showMarkRead"
 					:fetchKey="fetchKey"
 					role="region"
 					:aria-label="t('news', 'Article list')"
@@ -126,6 +127,15 @@ const props = defineProps({
 		type: Number,
 		required: false,
 		default: 0,
+	},
+
+	/**
+	 * Show a mark all as read button in the list header
+	 */
+	showMarkRead: {
+		type: Boolean,
+		required: false,
+		default: false,
 	},
 })
 

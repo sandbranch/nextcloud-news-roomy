@@ -6,6 +6,7 @@
 		:listName="folder ? folder.name : ''"
 		:listCount="folder ? unreadCount : 0"
 		:fetchKey="'folder-' + folderId"
+		showMarkRead
 		@markRead="markRead()"
 		@loadMore="fetchMore()" />
 </template>

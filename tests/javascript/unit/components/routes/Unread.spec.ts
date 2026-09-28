@@ -6,6 +6,7 @@ import { nextTick } from 'vue'
 import Vuex from 'vuex'
 import ContentTemplate from '../../../../../src/components/ContentTemplate.vue'
 import Unread from '../../../../../src/components/routes/Unread.vue'
+import { ACTIONS } from '../../../../../src/store/index.ts'
 
 describe('Unread.vue', () => {
 	'use strict'
@@ -68,6 +69,7 @@ describe('Unread.vue', () => {
 			},
 			getters: {
 				unread: () => mockItems,
+				feeds: () => [{ id: 1 }, { id: 2 }],
 				oldestFirst: (state) => state.app.oldestFirst,
 			},
 		})
@@ -123,5 +125,17 @@ describe('Unread.vue', () => {
 
 		wrapper.vm.$options.watch.newestItemId.call(wrapper.vm, wrapper.vm.newestItemId)
 		expect(wrapper.vm.unreadCache).toEqual([])
+	})
+
+	it('should mark every feed read when markRead is called', () => {
+		(store.dispatch as any).mockClear()
+		wrapper.vm.markRead()
+
+		expect(store.dispatch).toHaveBeenCalledWith(ACTIONS.FEED_MARK_READ, { feed: { id: 1 } })
+		expect(store.dispatch).toHaveBeenCalledWith(ACTIONS.FEED_MARK_READ, { feed: { id: 2 } })
+	})
+
+	it('should show the mark all as read button', () => {
+		expect(wrapper.findComponent(ContentTemplate).props('showMarkRead')).toBe(true)
 	})
 })
