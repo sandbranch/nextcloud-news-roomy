@@ -11,4 +11,7 @@ export type FeedItem = {
 	keepUnread: boolean
 	body: string
 	intro: string
+	mediaThumbnail?: string | null
+	enclosureLink?: string | null
+	enclosureMime?: string | null
 }

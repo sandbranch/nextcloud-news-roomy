@@ -3,6 +3,7 @@
 		:layout="layout"
 		:showDetails="showDetails"
 		:listMaxWidth="100"
+		:listSize="listSize"
 		@update:showDetails="showItem(false)">
 		<template #list>
 			<NcAppContentList>
@@ -152,6 +153,11 @@ const selectedByKeyboard = ref(false)
 
 const displayMode = computed(() => {
 	return store.getters.displaymode
+})
+
+const listSize = computed(() => {
+	// roomy rows need space for a thumbnail next to the title
+	return displayMode.value === DISPLAY_MODE.ROOMY ? 40 : 20
 })
 
 const layout = computed(() => {
