@@ -28,7 +28,7 @@ await page.fill('#password', 'admin')
 await page.click('button[type=submit]')
 await page.waitForURL((u) => !u.pathname.includes('/login'))
 await page.goto(base + path)
-await page.waitForSelector('.feed-item-row', { timeout: 30000 }).catch(() => console.error('no rows'))
+await page.waitForSelector(process.env.WAIT ?? '.feed-item-row', { timeout: 30000 }).catch(() => console.error('no rows'))
 await page.waitForTimeout(2500)
 if (process.env.HOVER) {
 	await page.hover('.feed-item-row >> nth=1')
