@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import FeedItemRow from '../../../../../src/components/feed-display/FeedItemRow.vue'
+import { DISPLAY_MODE, ITEM_HEIGHT, MEDIA_TYPE, SHOW_MEDIA } from '../../../../../src/enums/index.ts'
 import { ACTIONS, MUTATIONS } from '../../../../../src/store/index.ts'
 
 describe('FeedItemRow.vue', () => {
@@ -157,5 +158,40 @@ describe('FeedItemRow.vue', () => {
 
 		wrapper.vm.closeShareMenu()
 		expect(wrapper.vm.showShareMenu).toEqual(false)
+	})
+
+	describe('roomy display mode', () => {
+		const mountRoomy = (item: object) => shallowMount(FeedItemRow, {
+			props: { item, itemIndex: 1, itemCount: 1, fetchKey: 'all' },
+			global: {
+				mocks: {
+					$store: {
+						getters: {
+							feeds: [{ id: 1, title: 'Swedroid' }],
+							displaymode: DISPLAY_MODE.ROOMY,
+							mediaOptions: { [MEDIA_TYPE.THUMBNAILS]: SHOW_MEDIA.ALWAYS, [MEDIA_TYPE.IMAGES_BODY]: SHOW_MEDIA.ALWAYS },
+						},
+						state: { feeds: [], folders: [] },
+						dispatch: vi.fn(),
+						commit: vi.fn(),
+					},
+				},
+			},
+		})
+
+		it('shows the first body image, the feed title and uses the roomy height', () => {
+			const roomy = mountRoomy({ ...mockItem, body: '<p><img src="https://example.com/pic.webp"></p>' })
+			expect(roomy.classes()).toContain('roomy')
+			expect(roomy.find('img.thumbnail').attributes('src')).toBe('https://example.com/pic.webp')
+			expect(roomy.find('.feed-title').text()).toBe('Swedroid')
+			expect(roomy.vm.itemHeight).toBe(ITEM_HEIGHT.ROOMY)
+			expect(roomy.vm.iconSize).toBe(18)
+		})
+
+		it('falls back to the feed icon when there is no image', async () => {
+			const roomy = mountRoomy({ ...mockItem, body: '<p>text</p>' })
+			expect(roomy.find('img.thumbnail').exists()).toBe(false)
+			expect(roomy.find('.thumbnail-container .favicon').exists()).toBe(true)
+		})
 	})
 })

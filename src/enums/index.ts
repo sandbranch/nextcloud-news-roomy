@@ -2,6 +2,7 @@ export enum DISPLAY_MODE {
 	DEFAULT = '0',
 	COMPACT = '1',
 	SCREENREADER = '2',
+	ROOMY = '3',
 }
 
 export enum FEED_ORDER {
@@ -24,6 +25,7 @@ export enum SPLIT_MODE {
 export enum ITEM_HEIGHT {
 	DEFAULT = '111',
 	COMPACT = '44',
+	ROOMY = '132',
 }
 
 export enum SHOW_MEDIA {

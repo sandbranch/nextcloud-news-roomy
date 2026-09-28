@@ -59,7 +59,14 @@ export default defineComponent({
 		},
 
 		rowHeight() {
-			return this.displayMode === DISPLAY_MODE.COMPACT ? ITEM_HEIGHT.COMPACT : ITEM_HEIGHT.DEFAULT
+			switch (this.displayMode) {
+				case DISPLAY_MODE.COMPACT:
+					return ITEM_HEIGHT.COMPACT
+				case DISPLAY_MODE.ROOMY:
+					return ITEM_HEIGHT.ROOMY
+				default:
+					return ITEM_HEIGHT.DEFAULT
+			}
 		},
 	},
 

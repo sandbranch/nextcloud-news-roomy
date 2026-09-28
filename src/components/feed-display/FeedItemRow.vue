@@ -1,7 +1,7 @@
 <template>
 	<li
 		class="feed-item-row"
-		:class="{ compact: compactMode }"
+		:class="{ compact: compactMode, roomy: roomyMode }"
 		:aria-label="item.title"
 		:aria-setsize="itemCount"
 		:aria-posinset="itemIndex"
@@ -12,7 +12,21 @@
 		@keydown.space.prevent="select()"
 		@click="select()">
 		<ShareItem v-if="showShareMenu" :itemId="shareItem" @close="closeShareMenu()" />
-		<div class="link-container">
+		<div v-if="roomyMode" class="thumbnail-container">
+			<img
+				v-if="thumbnail"
+				class="thumbnail"
+				:src="thumbnail"
+				alt=""
+				loading="lazy"
+				referrerpolicy="no-referrer"
+				@error="thumbnailFailed = true">
+			<span
+				v-else
+				class="favicon"
+				:style="{ backgroundImage: 'url(' + feedIcon + ')' }" />
+		</div>
+		<div v-else class="link-container">
 			<a
 				class="external"
 				target="_blank"
@@ -36,27 +50,48 @@
 				{{ item.title }}
 			</h1>
 
+			<div v-if="roomyMode" class="meta-container">
+				<a
+					class="external"
+					target="_blank"
+					rel="noreferrer"
+					:href="item.url"
+					:title="t('news', 'Open website')"
+					:aria-label="`${t('news', 'Open website')} ${item.url}`"
+					@click.middle="markRead(item); $event.stopPropagation();"
+					@click="markRead(item); $event.stopPropagation();">
+					<span
+						class="favicon"
+						:style="{ backgroundImage: 'url(' + feedIcon + ')' }" />
+				</a>
+				<span class="feed-title">{{ getFeed(item.feedId).title }}</span>
+				<span aria-hidden="true">·</span>
+				<time class="date" :title="formatDate(item.pubDate)" :datetime="formatDateISO(item.pubDate)">
+					{{ formatDateRelative(item.pubDate) }}
+				</time>
+			</div>
+
 			<div class="intro-container" :class="{ compact: compactMode }">
 				<!-- eslint-disable vue/no-v-html -->
 				<span class="intro" v-html="item.intro" />
 				<!--eslint-enable-->
 			</div>
 
-			<div class="date-container" :class="{ compact: compactMode }">
+			<div v-if="!roomyMode" class="date-container" :class="{ compact: compactMode }">
 				<time class="date" :title="formatDate(item.pubDate)" :datetime="formatDateISO(item.pubDate)">
 					{{ formatDateRelative(item.pubDate) }}
 				</time>
 			</div>
 		</div>
 
-		<div class="button-container" @click="$event.stopPropagation()">
+		<div class="button-container" :class="{ roomy: roomyMode }" @click="$event.stopPropagation()">
 			<NcActions :inline="isMobile ? 0 : 3">
 				<NcActionButton
 					:title="t('news', 'Toggle star article')"
 					@click="toggleStarred(item)">
 					{{ t('news', 'Toggle star article') }}
 					<template #icon>
-						<StarIcon :class="{ starred: item.starred }" :size="24" />
+						<StarIcon :class="{ starred: item.starred }" :size="iconSize" />
 					</template>
 				</NcActionButton>
 				<NcActionButton
@@ -65,7 +100,7 @@
 					@click="toggleKeepUnread(item)">
 					{{ t('news', 'Keep article unread') }}
 					<template #icon>
-						<EyeIcon :size="24" />
+						<EyeIcon :size="iconSize" />
 					</template>
 				</NcActionButton>
 				<NcActionButton
@@ -74,7 +109,7 @@
 					@click="toggleKeepUnread(item)">
 					{{ t('news', 'Keep article unread (auto-filtered)') }}
 					<template #icon>
-						<FilterIcon :size="24" :style="{ color: 'var(--color-placeholder-dark)' }" />
+						<FilterIcon :size="iconSize" :style="{ color: 'var(--color-placeholder-dark)' }" />
 					</template>
 				</NcActionButton>
 				<NcActionButton
@@ -83,7 +118,7 @@
 					@click="toggleKeepUnread(item)">
 					{{ t('news', 'Toggle keep current article unread') }}
 					<template #icon>
-						<EyeCheckIcon :size="24" />
+						<EyeCheckIcon :size="iconSize" />
 					</template>
 				</NcActionButton>
 				<NcActionButton
@@ -92,13 +127,13 @@
 					@click="toggleKeepUnread(item)">
 					{{ t('news', 'Remove keep article unread') }}
 					<template #icon>
-						<EyeLockIcon :size="24" />
+						<EyeLockIcon :size="iconSize" />
 					</template>
 				</NcActionButton>
 				<NcActionButton :title="t('news', 'Share within Instance')" @click="shareItem = item.id; showShareMenu = true">
 					{{ t('news', 'Share within Instance') }}
 					<template #icon>
-						<ShareVariant />
+						<ShareVariant :size="iconSize" />
 					</template>
 				</NcActionButton>
 			</NcActions>
@@ -125,6 +160,7 @@ import { DISPLAY_MODE, ITEM_HEIGHT, SPLIT_MODE } from '../../enums/index.ts'
 import { ACTIONS, MUTATIONS } from '../../store/index.ts'
 import { API_ROUTES } from '../../types/ApiRoutes.ts'
 import { formatDate, formatDateISO, formatDateRelative } from '../../utils/dateUtils.ts'
+import { itemThumbnail } from '../../utils/itemThumbnail.ts'
 
 export default defineComponent({
 	name: 'FeedItemRow',
@@ -188,6 +224,7 @@ export default defineComponent({
 		return {
 			showShareMenu: false,
 			shareItem: undefined,
+			thumbnailFailed: false,
 		}
 	},
 
@@ -196,11 +233,29 @@ export default defineComponent({
 			return this.$store.getters.displaymode === DISPLAY_MODE.COMPACT
 		},
 
+		roomyMode() {
+			return this.$store.getters.displaymode === DISPLAY_MODE.ROOMY
+		},
+
+		thumbnail() {
+			if (this.thumbnailFailed) {
+				return null
+			}
+			return itemThumbnail(this.item, this.$store.getters.mediaOptions ?? {})
+		},
+
+		iconSize() {
+			return this.roomyMode ? 18 : 24
+		},
+
 		verticalSplit() {
 			return this.$store.getters.splitmode === SPLIT_MODE.VERTICAL
 		},
 
 		itemHeight() {
+			if (this.roomyMode) {
+				return ITEM_HEIGHT.ROOMY
+			}
 			return this.compactMode ? ITEM_HEIGHT.COMPACT : ITEM_HEIGHT.DEFAULT
 		},
 
@@ -411,6 +466,143 @@ export default defineComponent({
 
 	.feed-item-row .button-container .eye-check-icon {
 		color: var(--color-placeholder-dark);
+	}
+
+	/* Roomy: thumbnail, two line title, source line, two line excerpt */
+	.feed-item-row.roomy {
+		container-type: inline-size;
+		box-sizing: border-box;
+		align-items: flex-start;
+		gap: 16px;
+		padding: 14px 12px 14px 16px;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.feed-item-row.roomy .thumbnail-container {
+		flex: 0 0 128px;
+		height: 80px;
+		margin-top: 2px;
+		border-radius: var(--border-radius-large, 8px);
+		overflow: hidden;
+		background-color: var(--color-background-dark);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.feed-item-row.roomy .thumbnail {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.feed-item-row.roomy .thumbnail-container .favicon {
+		opacity: 0.5;
+	}
+
+	.feed-item-row.roomy .main-container {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+	}
+
+	.feed-item-row.roomy .title-container {
+		margin: 0;
+		font-size: 16px;
+		line-height: 21px;
+		white-space: normal;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.feed-item-row.roomy .meta-container {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		min-width: 0;
+		font-size: 13px;
+		line-height: 18px;
+		color: var(--color-text-maxcontrast);
+		white-space: nowrap;
+	}
+
+	.feed-item-row.roomy .meta-container a.external {
+		line-height: 0;
+	}
+
+	.feed-item-row.roomy .meta-container .favicon {
+		width: 14px;
+		height: 14px;
+	}
+
+	.feed-item-row.roomy .feed-title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
+	}
+
+	.feed-item-row.roomy .intro-container {
+		height: 36px;
+		line-height: 18px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.feed-item-row.roomy .intro {
+		font-size: 13px;
+	}
+
+	/* The actions float over the top right corner so the text gets the full width */
+	.feed-item-row.roomy {
+		position: relative;
+	}
+
+	.feed-item-row .button-container.roomy {
+		position: absolute;
+		top: 8px;
+		inset-inline-end: 8px;
+		padding: 2px;
+		border-radius: var(--border-radius-element, 8px);
+		background-color: var(--color-main-background);
+		box-shadow: 0 0 6px var(--color-box-shadow);
+	}
+
+	@media (hover: hover) {
+		.feed-item-row .button-container.roomy {
+			opacity: 0;
+			transition: opacity 0.1s ease-in-out;
+		}
+
+		.feed-item-row.roomy:hover .button-container.roomy,
+		.feed-item-row.roomy:focus-within .button-container.roomy {
+			opacity: 1;
+		}
+	}
+
+	.feed-item-row .button-container.roomy .button-vue,
+	.feed-item-row .button-container.roomy .button-vue .button-vue__wrapper {
+		width: 28px !important;
+		min-width: 28px;
+		min-height: 28px;
+		height: 28px;
+	}
+
+	.feed-item-row .button-container.roomy .material-design-icon {
+		width: 18px !important;
+		min-width: 18px;
+		min-height: 18px;
+		height: 18px;
+	}
+
+	@container (max-width: 480px) {
+		.feed-item-row.roomy .thumbnail-container {
+			flex-basis: 72px;
+			height: 72px;
+		}
 	}
 
 	.active, .active:hover {
