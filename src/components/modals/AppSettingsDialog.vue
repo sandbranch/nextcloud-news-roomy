@@ -303,6 +303,10 @@ export default defineComponent({
 					name: t('news', 'Compact'),
 				},
 				{
+					id: DISPLAY_MODE.ROOMY,
+					name: t('news', 'Roomy'),
+				},
+				{
 					id: DISPLAY_MODE.SCREENREADER,
 					name: t('news', 'Screenreader'),
 				},
