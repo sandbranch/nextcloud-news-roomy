@@ -8,6 +8,17 @@
 				<NcCounterBubble v-if="listCount > 0" class="header-counter" :count="listCount" />
 			</div>
 			<NcButton
+				v-if="showMarkRead && listCount > 0"
+				class="header-button"
+				:title="t('news', 'Mark all as read')"
+				:aria-label="t('news', 'Mark all as read')"
+				variant="tertiary"
+				@click="markRead">
+				<template #icon>
+					<CheckAllIcon :size="20" />
+				</template>
+			</NcButton>
+			<NcButton
 				v-if="!isMobile"
 				class="header-button"
 				:title="t('news', 'Refresh list')"
@@ -60,6 +71,7 @@ import { useSwipe } from '@vueuse/core'
 import { defineComponent } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCounterBubble from '@nextcloud/vue/components/NcCounterBubble'
+import CheckAllIcon from 'vue-material-design-icons/CheckAll.vue'
 import RefreshIcon from 'vue-material-design-icons/Refresh.vue'
 import FeedItemDisplay from './FeedItemDisplay.vue'
 import FeedItemRow from './FeedItemRow.vue'
@@ -74,6 +86,7 @@ export default defineComponent({
 		FeedItemRow,
 		NcButton,
 		NcCounterBubble,
+		CheckAllIcon,
 		RefreshIcon,
 	},
 
@@ -108,6 +121,15 @@ export default defineComponent({
 		listCount: {
 			type: Number,
 			required: true,
+		},
+
+		/**
+		 * Show a button in the header that marks the whole list as read
+		 */
+		showMarkRead: {
+			type: Boolean,
+			required: false,
+			default: false,
 		},
 	},
 

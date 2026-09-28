@@ -356,6 +356,28 @@ describe('FeedItemDisplayList.vue', () => {
 		expect(wrapper.emitted('markRead')!.length).toBe(1)
 	})
 
+	describe('mark all as read button', () => {
+		const markAllButton = (w: any) => w.find('[title="Mark all as read"]')
+
+		it('is hidden unless the view asks for it', () => {
+			expect(markAllButton(wrapper).exists()).toBe(false)
+		})
+
+		it('emits "markRead" when clicked', async () => {
+			await wrapper.setProps({ showMarkRead: true })
+			const button = markAllButton(wrapper)
+			expect(button.exists()).toBe(true)
+
+			await button.trigger('click')
+			expect(wrapper.emitted('markRead')!.length).toBe(1)
+		})
+
+		it('is hidden when nothing is unread', async () => {
+			await wrapper.setProps({ showMarkRead: true, listCount: 0 })
+			expect(markAllButton(wrapper).exists()).toBe(false)
+		})
+	})
+
 	it('should emit "showDetails" when calling showDetails', () => {
 		wrapper.vm.showDetails()
 
