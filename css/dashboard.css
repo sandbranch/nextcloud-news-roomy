@@ -1,0 +1,5 @@
+/* Header icon of the unread articles dashboard widget */
+.icon-news {
+	background-image: url('../img/app-dark.svg');
+	filter: var(--background-invert-if-dark);
+}

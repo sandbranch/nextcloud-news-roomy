@@ -13,6 +13,7 @@
 
 namespace OCA\News\AppInfo;
 
+use OCA\News\Dashboard\UnreadItemsWidget;
 use OCA\News\Vendor\FeedIo\Explorer;
 use OCA\News\Vendor\FeedIo\FeedIo;
 use OCA\News\Vendor\FeedIo\FaviconIo\FaviconDiscovery;
@@ -97,6 +98,8 @@ class Application extends App implements IBootstrap
         $context->registerSearchProvider(FolderSearchProvider::class);
         $context->registerSearchProvider(FeedSearchProvider::class);
         $context->registerSearchProvider(ItemSearchProvider::class);
+
+        $context->registerDashboardWidget(UnreadItemsWidget::class);
 
         $context->registerNotifierService(Notifier::class);
 
