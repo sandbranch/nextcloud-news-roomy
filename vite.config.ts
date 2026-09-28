@@ -9,6 +9,7 @@ import { resolve } from 'node:path'
 export default createAppConfig({
 	main: 'src/main.js',
 	'admin-settings': 'src/main-admin.js',
+	dashboard: 'src/main-dashboard.ts',
 }, {
 	inlineCSS: { relativeCSSInjection: true },
 	config: {
