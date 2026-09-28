@@ -6,6 +6,7 @@
 		:listName="feed ? feed.title : ''"
 		:listCount="feed ? feed.unreadCount : 0"
 		:fetchKey="'feed-' + feedId"
+		showMarkRead
 		@markRead="markRead()"
 		@loadMore="fetchMore()" />
 </template>

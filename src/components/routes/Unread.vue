@@ -5,10 +5,13 @@
 		:listName="t('news', 'Unread Articles')"
 		:listCount="items.unreadCount"
 		fetchKey="unread"
+		showMarkRead
+		@markRead="markRead()"
 		@loadMore="fetchMore()" />
 </template>
 
 <script lang="ts">
+import type { Feed } from '../../types/Feed.ts'
 import type { FeedItem } from '../../types/FeedItem.ts'
 
 import { defineComponent } from 'vue'
@@ -89,6 +92,12 @@ export default defineComponent({
 			if (!this.$store.state.items.fetchingItems.unread) {
 				this.$store.dispatch(ACTIONS.FETCH_UNREAD)
 			}
+		},
+
+		async markRead() {
+			this.$store.getters.feeds.forEach((feed: Feed) => {
+				this.$store.dispatch(ACTIONS.FEED_MARK_READ, { feed })
+			})
 		},
 	},
 })
